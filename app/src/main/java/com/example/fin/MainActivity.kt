@@ -24,7 +24,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 
 class MainActivity : ComponentActivity() {
-    val userRepository = UserRepository.getInstance()
+    private val userRepository = UserRepository.getInstance()
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
