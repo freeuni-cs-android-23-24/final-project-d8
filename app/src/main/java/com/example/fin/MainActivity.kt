@@ -78,7 +78,6 @@ class MainActivity : ComponentActivity() {
             .setAvailableProviders(providers)
             .setAlwaysShowSignInMethodScreen(false)
             .setIsSmartLockEnabled(false)
-            .enableAnonymousUsersAutoUpgrade()
             .build()
     }
 }
