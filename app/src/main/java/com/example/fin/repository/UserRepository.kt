@@ -1,5 +1,6 @@
-package com.example.fin
+package com.example.fin.repository
 
+import com.example.fin.model.ApplicationUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,7 @@ class UserRepository private constructor() {
         FirebaseAuth.getInstance().addAuthStateListener { auth ->
             val user = auth.currentUser
             if (user != null) {
-                val applicationUser = ApplicationUser(user.displayName ?: "N/A")
+                val applicationUser = ApplicationUser(user.uid, user.email ?: "N/A", user.displayName ?: "N/A")
                 _currentUser.value = applicationUser
             } else {
                 _currentUser.value = null
@@ -27,12 +28,13 @@ class UserRepository private constructor() {
     }
 
     fun update(user: FirebaseUser) {
-        val applicationUser = ApplicationUser(user.displayName ?: "N/A")
+        val applicationUser = ApplicationUser(user.uid, user.email ?: "N/A", user.displayName ?: "N/A")
         _currentUser.value = applicationUser
     }
 
     companion object {
-        @Volatile private var instance: UserRepository? = null
+        @Volatile
+        private var instance: UserRepository? = null
 
         fun getInstance(): UserRepository {
             return instance ?: synchronized(this) {
@@ -41,8 +43,3 @@ class UserRepository private constructor() {
         }
     }
 }
-
-
-data class ApplicationUser(
-    val name: String
-)
