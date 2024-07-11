@@ -8,11 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -71,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FinTheme {
-                Surface (
+                Surface(
                     modifier = Modifier.padding(top = 30.dp)
                 ) {
                     val navController = rememberNavController()
@@ -137,10 +134,24 @@ fun ApplicationScreen(
             Text(
                 text = "Hello, ${currentUser.name}",
             )
-            Button(
-                onClick = { FirebaseAuth.getInstance().signOut() },
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Sign Out", color = Color.White)
+                Button(
+                    onClick = {
+                        navController.navigate("UserProfilePage/${currentUser.id}")
+                    },
+                ) {
+                    Text(text = "My Profile", color = Color.White)
+                }
+                Button(
+                    onClick = { FirebaseAuth.getInstance().signOut() },
+                ) {
+                    Text(text = "Sign Out", color = Color.White)
+                }
             }
 //            CreatePostUI(postViewModel = postViewModel)
             Row(modifier = Modifier.padding(top = 8.dp)) {
@@ -210,7 +221,6 @@ fun ApplicationScreen(
 
     }
 }
-
 
 
 @Composable
