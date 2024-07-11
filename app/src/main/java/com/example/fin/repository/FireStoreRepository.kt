@@ -57,6 +57,7 @@ class FirestoreRepository {
             .addOnSuccessListener { result ->
                 val posts = result.map { document ->
                     val post = document.toObject(UserPost::class.java)
+
                     post.copy(userPostId = document.id)
                 }
                 onComplete(posts, null)

@@ -64,6 +64,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                         .size(36.dp)
                         .clip(CircleShape)
                 )
+
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
                     text = userPost.authorName,
@@ -72,6 +73,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
             Text(
                 text = DateUtils.getDateTime(userPost.timestamp.toString()),
                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold),

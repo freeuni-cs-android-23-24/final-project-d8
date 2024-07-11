@@ -16,6 +16,7 @@ class UserDataRepository {
                     email = user.email.toString(),
                     name = user.displayName.toString(),
                 )
+
                 userDataCollection.add(applicationUser)
                     .addOnSuccessListener {
                         onComplete(true, null)
