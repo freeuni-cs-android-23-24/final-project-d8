@@ -10,7 +10,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,7 +22,6 @@ import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -316,6 +319,8 @@ fun UserProfilePage(
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
 
+    print(userId)
+
     userDataRepository.getUserById(userId) { result, _ ->
         if (result != null) {
             user = result
@@ -338,8 +343,7 @@ fun UserProfilePage(
 
         if (posts.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(10.dp),
-                text = "${user.name}'s posts:",
+                text = "${user.name}'s posts",
             )
         }
 

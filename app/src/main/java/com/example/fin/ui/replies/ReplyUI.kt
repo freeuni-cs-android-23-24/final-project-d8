@@ -3,7 +3,6 @@ package com.example.fin.ui.replies
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -16,13 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fin.R
 import com.example.fin.model.Reply
 import com.example.fin.utils.DateUtils
 
@@ -75,7 +72,7 @@ fun ReplyItem(reply: Reply, onClick: () -> Unit) {
             .padding(top = 10.dp),
         onClick = onClick,
         shape = RectangleShape,
-        elevation = CardDefaults.cardElevation(
+        elevation =  CardDefaults.cardElevation(
             defaultElevation = 8.dp
         ),
         colors = CardDefaults.cardColors(
@@ -87,25 +84,12 @@ fun ReplyItem(reply: Reply, onClick: () -> Unit) {
                 .padding(8.dp)
                 .fillMaxWidth()
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "Profile picture",
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                )
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = reply.authorName,
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                text = reply.authorName,
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             Text(
                 text = "Replied on " + DateUtils.getDateTime(reply.timestamp.toString()),
                 style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
