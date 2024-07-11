@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,16 +35,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-
+import com.example.fin.model.ApplicationUser
+import com.example.fin.model.Reply
 import com.example.fin.model.UserPost
-import com.example.fin.repository.FirestoreRepository
-import com.example.fin.repository.UserPostRepository
-import com.example.fin.repository.UserRepository
-
+import com.example.fin.repository.*
 import com.example.fin.ui.posts.UserPostUI
+import com.example.fin.ui.replies.ReplyInput
+import com.example.fin.ui.replies.ReplyItem
 import com.example.fin.ui.theme.FinTheme
-
-
+import com.example.fin.ui.user.UserProfileUI
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.AuthUI.IdpConfig.EmailBuilder
 import com.firebase.ui.auth.AuthUI.IdpConfig.GoogleBuilder
@@ -52,13 +53,15 @@ class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
     private val fireStoreRepository = FirestoreRepository()
     private val userPostRepository = UserPostRepository(fireStoreRepository)
+    private val userDataRepository = UserDataRepository()
+    private val repliesRepository = RepliesRepository()
 
-    private val signInLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            val currentUser =
-                FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
-            userRepository.update(currentUser)
-        }
+    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
+        userRepository.update(currentUser)
+        userDataRepository.saveUserData(currentUser, { _, _ -> })
+
+    }
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,33 +71,51 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FinTheme {
-                val navController = rememberNavController()
+                Surface (
+                    modifier = Modifier.padding(top = 30.dp)
+                ) {
+                    val navController = rememberNavController()
 
-                NavHost(navController = navController, startDestination = "ApplicationScreen") {
-                    composable("ApplicationScreen") {
-                        ApplicationScreen(
-                            navController = navController,
-                            userRepository = userRepository,
-                            userPostRepository = userPostRepository,
-                            signInLauncher = signInLauncher,
-                        )
+                    NavHost(navController = navController, startDestination = "ApplicationScreen") {
+                        composable("ApplicationScreen") {
+                            ApplicationScreen(
+                                navController = navController,
+                                userRepository = userRepository,
+                                userPostRepository = userPostRepository,
+                                signInLauncher = signInLauncher,
+                            )
+                        }
+                        composable(
+                            route = "UserPostPage/{userPostId}",
+                            arguments = listOf(navArgument("userPostId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            UserPostPage(
+                                userPostId = backStackEntry.arguments?.getString("userPostId") ?: "",
+                                navController = navController,
+                                userPostRepository = userPostRepository,
+                                userRepository = userRepository,
+                                repliesRepository = repliesRepository
+                            )
+                        }
+
+                        composable(
+                            route = "UserProfilePage/{userId}",
+                            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            UserProfilePage(
+                                userId = backStackEntry.arguments?.getString("userId") ?: "",
+                                navController = navController,
+                                userPostRepository = userPostRepository,
+                                userDataRepository = userDataRepository,
+                                userRepository = userRepository
+                            )
+                        }
                     }
-                    composable(
-                        route = "UserPostPage/{userPostId}",
-                        arguments = listOf(navArgument("userPostId") { type = NavType.StringType })
-                    ) { backStackEntry ->
-                        UserPostPage(
-                            userPostId = backStackEntry.arguments?.getString("userPostId") ?: "",
-                            userPostRepository = userPostRepository,
-                            userRepository = userRepository
-                        )
-                    }
+
                 }
-
             }
         }
     }
-
 }
 
 @Composable
@@ -106,10 +127,7 @@ fun ApplicationScreen(
 ) {
     //val postViewModel: PostViewModel = viewModel()
     Column(
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.padding(10.dp).fillMaxSize().verticalScroll(rememberScrollState())
     ) {
         var userPosts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
         val currentUser = userRepository.currentUser.collectAsState().value
@@ -184,8 +202,6 @@ fun ApplicationScreen(
             }
         }
 
-        print(userPosts.toString())
-
         for (post in userPosts) {
             UserPostUI(post, onClick = {
                 navController.navigate("UserPostPage/${post.userPostId}")
@@ -200,10 +216,15 @@ fun ApplicationScreen(
 @Composable
 fun UserPostPage(
     userPostId: String,
+    navController: NavHostController,
     userPostRepository: UserPostRepository,
-    userRepository: UserRepository
+    userRepository: UserRepository,
+    repliesRepository: RepliesRepository
 ) {
     var userPost by remember { mutableStateOf(UserPost()) }
+    var replies by remember { mutableStateOf<List<Reply>>(emptyList()) }
+    val currentUser = userRepository.currentUser.collectAsState().value
+
 
     userPostRepository.getPostById(userPostId) { result, _ ->
         if (result != null) {
@@ -211,19 +232,90 @@ fun UserPostPage(
         }
     }
 
-    UserPostUI(userPost, {})
+    repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
+        if (result != null) {
+            replies = result
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+    ) {
+        UserPostUI(userPost, onClick = {
+            navController.navigate("UserProfilePage/${userPost.authorId}")
+        })
+        if (currentUser != null) {
+            ReplyInput { reply ->
+                repliesRepository.saveReply(reply, userPostId) { _, _ -> }
+                repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
+                    if (result != null) {
+                        replies = result
+                    }
+                }
+            }
+        }
+
+        for (reply in replies) {
+            ReplyItem(reply, onClick = {
+                navController.navigate("UserProfilePage/${reply.authorId}")
+            })
+        }
+    }
+}
+
+@Composable
+fun UserProfilePage(
+    userId: String,
+    navController: NavHostController,
+    userPostRepository: UserPostRepository,
+    userDataRepository: UserDataRepository,
+    userRepository: UserRepository
+) {
+    val currentUser = userRepository.currentUser.collectAsState().value
+
+    var user by remember { mutableStateOf(ApplicationUser()) }
+    var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
+
+    print(userId)
+
+    userDataRepository.getUserById(userId) { result, _ ->
+        if (result != null) {
+            user = result
+        }
+    }
+
+    userPostRepository.getPostsByUser(userId) { result, _ ->
+        if (result != null) {
+            posts = result
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+    ) {
+
+        UserProfileUI(user)
+
+        if (posts.isNotEmpty()) {
+            Text(
+                text = "${user.name}'s posts",
+            )
+        }
+
+        for (post in posts) {
+            UserPostUI(post, onClick = {
+                navController.navigate("UserPostPage/${post.userPostId}")
+            })
+        }
+    }
 }
 
 private fun createSignInIntent(): Intent {
     val providers = listOf(
-        EmailBuilder().build(),
-        GoogleBuilder().build()
+        EmailBuilder().build(), GoogleBuilder().build()
     )
 
-    return AuthUI.getInstance()
-        .createSignInIntentBuilder()
-        .setAvailableProviders(providers)
-        .setAlwaysShowSignInMethodScreen(false)
-        .setIsSmartLockEnabled(false)
-        .build()
+    return AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
+        .setAlwaysShowSignInMethodScreen(false).setIsSmartLockEnabled(false).build()
 }
