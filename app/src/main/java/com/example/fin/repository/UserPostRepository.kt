@@ -3,7 +3,8 @@ package com.example.fin.repository
 import com.example.fin.model.UserPost
 import com.google.firebase.auth.FirebaseAuth
 
-class UserPostRepository(private val firestoreRepository: FireStoreRepository) {
+class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
+
     fun savePost(bodyText: String, onComplete: (Boolean, String?) -> Unit) {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -20,6 +21,10 @@ class UserPostRepository(private val firestoreRepository: FireStoreRepository) {
 
     fun getAllPosts(onComplete: (List<UserPost>?, String?) -> Unit) {
         firestoreRepository.getAllPosts(onComplete)
+    }
+
+    fun getPostById(userPostId: String, onComplete: (UserPost?, String?) -> Unit) {
+        firestoreRepository.getPostById(userPostId, onComplete)
     }
 
     fun getPostsByUser(authorId: String, onComplete: (List<UserPost>?, String?) -> Unit) {

@@ -1,9 +1,10 @@
 package com.example.fin.repository
 
 import com.example.fin.model.UserPost
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
-class FireStoreRepository {
+
+class FirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val postsCollection = firestore.collection("userPosts")
 
@@ -21,8 +22,27 @@ class FireStoreRepository {
         postsCollection.orderBy("timestamp")
             .get()
             .addOnSuccessListener { result ->
-                val posts = result.map { document -> document.toObject(UserPost::class.java) }
+                val posts = result.map { document ->
+                    val post = document.toObject(UserPost::class.java)
+                    post.copy(userPostId = document.id)
+                }
                 onComplete(posts, null)
+            }
+            .addOnFailureListener { exception ->
+                onComplete(null, exception.message)
+            }
+    }
+
+    fun getPostById(userPostId: String, onComplete: (UserPost?, String?) -> Unit) {
+        postsCollection.document(userPostId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val post = document.toObject(UserPost::class.java)?.copy(userPostId = document.id)
+                    onComplete(post, null)
+                } else {
+                    onComplete(null, "Post not found")
+                }
             }
             .addOnFailureListener { exception ->
                 onComplete(null, exception.message)
@@ -34,7 +54,10 @@ class FireStoreRepository {
             .orderBy("timestamp")
             .get()
             .addOnSuccessListener { result ->
-                val posts = result.map { document -> document.toObject(UserPost::class.java) }
+                val posts = result.map { document ->
+                    val post = document.toObject(UserPost::class.java)
+                    post.copy(userPostId = document.id)
+                }
                 onComplete(posts, null)
             }
             .addOnFailureListener { exception ->
