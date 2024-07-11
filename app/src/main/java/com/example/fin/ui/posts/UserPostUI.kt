@@ -58,7 +58,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
             Text(
                 text = DateUtils.getDateTime(userPost.timestamp.toString()),
                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold),
-                color = Color.Blue,
+                color = Color.LightGray,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
