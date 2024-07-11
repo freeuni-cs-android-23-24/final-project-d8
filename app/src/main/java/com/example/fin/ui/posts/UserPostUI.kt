@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,7 +24,7 @@ import com.example.fin.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserPostUI(userPost: UserPost) {
+fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -36,7 +35,7 @@ fun UserPostUI(userPost: UserPost) {
                 )
             )
             .padding(10.dp),
-        onClick = {},
+        onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         elevation =  CardDefaults.cardElevation(
             defaultElevation = 8.dp
