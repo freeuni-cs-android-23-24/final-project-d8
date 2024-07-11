@@ -18,6 +18,7 @@ class RepliesRepository {
                 postId = postId,
                 text = text
             )
+
             repliesCollection.add(reply)
                 .addOnSuccessListener {
                     onComplete(true, null)

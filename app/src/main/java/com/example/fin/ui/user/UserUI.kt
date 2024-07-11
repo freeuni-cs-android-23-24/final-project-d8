@@ -35,6 +35,7 @@ fun UserProfileUI(user: ApplicationUser) {
                 .clip(RoundedCornerShape(16.dp))
                 .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
         )
+
         Column(
             modifier = Modifier
                 .padding(start = 20.dp)

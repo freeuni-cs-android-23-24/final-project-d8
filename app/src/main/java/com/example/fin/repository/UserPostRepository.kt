@@ -7,6 +7,7 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
 
     fun savePost(bodyText: String, onComplete: (Boolean, String?) -> Unit) {
         val currentUser = FirebaseAuth.getInstance().currentUser
+
         if (currentUser != null) {
             val post = UserPost(
                 authorId = currentUser.uid,

@@ -72,6 +72,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
             Text(
                 text = DateUtils.getDateTime(userPost.timestamp.toString()),
                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold),
