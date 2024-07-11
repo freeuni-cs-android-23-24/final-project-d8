@@ -26,8 +26,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fin.model.Reply
 import com.example.fin.model.UserPost
 import com.example.fin.repository.FirestoreRepository
+import com.example.fin.repository.RepliesRepository
 import com.example.fin.repository.UserPostRepository
 import com.example.fin.repository.UserRepository
 import com.example.fin.ui.posts.UserPostUI
@@ -43,6 +45,7 @@ class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
     private val fireStoreRepository = FirestoreRepository()
     private val userPostRepository = UserPostRepository(fireStoreRepository)
+    private val repliesRepository = RepliesRepository()
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
@@ -174,7 +177,6 @@ fun UserPostPage(
         }
 
         for (reply in replies) {
-            print(reply)
             ReplyItem(reply)
         }
     }
