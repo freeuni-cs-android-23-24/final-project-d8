@@ -9,18 +9,26 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -117,12 +125,14 @@ fun ApplicationScreen(
     userPostRepository: UserPostRepository,
     signInLauncher: ActivityResultLauncher<Intent>
 ) {
+    //val postViewModel: PostViewModel = viewModel()
     Column(
         modifier = Modifier.padding(10.dp).fillMaxSize().verticalScroll(rememberScrollState())
     ) {
         var userPosts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
         val currentUser = userRepository.currentUser.collectAsState().value
-
+        var postContent by remember { mutableStateOf("") }
+        var showDialog by remember { mutableStateOf(false) }
         if (currentUser != null) {
             Text(
                 text = "Hello, ${currentUser.name}",
@@ -132,19 +142,57 @@ fun ApplicationScreen(
             ) {
                 Text(text = "Sign Out", color = Color.White)
             }
-            Button(
-                onClick = {
-                    userPostRepository.savePost("Hello, World") { _, _ -> }
-                },
-            ) {
-                Text(text = "Create Post", color = Color.White)
+//            CreatePostUI(postViewModel = postViewModel)
+            Row(modifier = Modifier.padding(top = 8.dp)) {
+                TextField(
+                    value = postContent,
+                    onValueChange = { postContent = it },
+                    label = { Text("Create a post") },
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = {
+                        if (postContent.isNotBlank()) {
+                            showDialog = true
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Default.Send, contentDescription = "Post")
+                }
+            }
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text(text = "Confirm Post") },
+                    text = { Text(text = "Are you sure you want to post this?") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                userPostRepository.savePost(postContent) { _, _ -> }
+                                postContent = ""  // Clear the TextField after saving
+                                showDialog = false
+                            }
+                        ) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = { showDialog = false }
+                        ) {
+                            Text("No")
+                        }
+                    }
+                )
             }
         } else {
+
             Button(
                 onClick = { signInLauncher.launch(createSignInIntent()) },
             ) {
                 Text(text = "Sign in", color = Color.White)
             }
+
         }
 
 
@@ -162,6 +210,8 @@ fun ApplicationScreen(
 
     }
 }
+
+
 
 @Composable
 fun UserPostPage(
