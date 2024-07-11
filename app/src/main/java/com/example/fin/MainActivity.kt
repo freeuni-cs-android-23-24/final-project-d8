@@ -38,10 +38,10 @@ import com.example.fin.model.UserPost
 import com.example.fin.repository.FirestoreRepository
 import com.example.fin.repository.UserPostRepository
 import com.example.fin.repository.UserRepository
-import com.example.fin.ui.posts.CreatePostUI
+
 import com.example.fin.ui.posts.UserPostUI
 import com.example.fin.ui.theme.FinTheme
-import com.example.fin.viewmodel.PostViewModel
+
 
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.AuthUI.IdpConfig.EmailBuilder
