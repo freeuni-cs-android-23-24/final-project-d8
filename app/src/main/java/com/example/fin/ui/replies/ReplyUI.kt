@@ -6,19 +6,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,7 +27,7 @@ import com.example.fin.utils.DateUtils
 fun ReplyInput(onReply: (String) -> Unit) {
     var input by remember { mutableStateOf("") }
     Row(
-        modifier = Modifier.padding(16.dp),
+        modifier = Modifier.padding(top = 16.dp, end = 4.dp, start = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -62,7 +58,7 @@ fun ReplyInput(onReply: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReplyItem(reply: Reply) {
+fun ReplyItem(reply: Reply, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,11 +68,11 @@ fun ReplyItem(reply: Reply) {
                     easing = LinearOutSlowInEasing
                 )
             )
-            .padding(10.dp),
-        onClick = {},
-        shape = RoundedCornerShape(6.dp),
+            .padding(top = 10.dp),
+        onClick = onClick,
+        shape = RectangleShape,
         elevation =  CardDefaults.cardElevation(
-            defaultElevation = 4.dp
+            defaultElevation = 8.dp
         ),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -96,7 +92,7 @@ fun ReplyItem(reply: Reply) {
             Text(
                 text = "Replied on " + DateUtils.getDateTime(reply.timestamp.toString()),
                 style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                color = Color.Blue,
+                color = Color.LightGray,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(

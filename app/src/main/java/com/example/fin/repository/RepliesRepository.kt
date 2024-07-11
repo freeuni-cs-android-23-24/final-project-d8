@@ -3,6 +3,7 @@ package com.example.fin.repository
 import com.example.fin.model.Reply
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class RepliesRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -31,7 +32,7 @@ class RepliesRepository {
 
     fun getRepliesByPostId(postId: String, onComplete: (List<Reply>?, String?) -> Unit) {
         repliesCollection.whereEqualTo("postId", postId)
-            .orderBy("timestamp")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
                 val replies = result.map { document ->

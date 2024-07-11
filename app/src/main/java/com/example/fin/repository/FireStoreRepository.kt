@@ -3,6 +3,7 @@ package com.example.fin.repository
 import com.example.fin.model.UserPost
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class FirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -19,7 +20,7 @@ class FirestoreRepository {
     }
 
     fun getAllPosts(onComplete: (List<UserPost>?, String?) -> Unit) {
-        postsCollection.orderBy("timestamp")
+        postsCollection.orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
                 val posts = result.map { document ->
@@ -51,7 +52,7 @@ class FirestoreRepository {
 
     fun getPostsByUser(authorId: String, onComplete: (List<UserPost>?, String?) -> Unit) {
         postsCollection.whereEqualTo("authorId", authorId)
-            .orderBy("timestamp")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
                 val posts = result.map { document ->
