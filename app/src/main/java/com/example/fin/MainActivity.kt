@@ -2,8 +2,10 @@ package com.example.fin
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -24,6 +27,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -53,12 +60,14 @@ class MainActivity : ComponentActivity() {
     private val userDataRepository = UserDataRepository()
     private val repliesRepository = RepliesRepository()
 
-    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
-        userRepository.update(currentUser)
-        userDataRepository.saveUserData(currentUser, { _, _ -> })
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val currentUser =
+                FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
+            userRepository.update(currentUser)
+            userDataRepository.saveUserData(currentUser, { _, _ -> })
 
-    }
+        }
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,10 +93,13 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             route = "UserPostPage/{userPostId}",
-                            arguments = listOf(navArgument("userPostId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("userPostId") {
+                                type = NavType.StringType
+                            })
                         ) { backStackEntry ->
                             UserPostPage(
-                                userPostId = backStackEntry.arguments?.getString("userPostId") ?: "",
+                                userPostId = backStackEntry.arguments?.getString("userPostId")
+                                    ?: "",
                                 navController = navController,
                                 userPostRepository = userPostRepository,
                                 userRepository = userRepository,
@@ -124,12 +136,25 @@ fun ApplicationScreen(
 ) {
     //val postViewModel: PostViewModel = viewModel()
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         var userPosts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
         val currentUser = userRepository.currentUser.collectAsState().value
         var postContent by remember { mutableStateOf("") }
         var showDialog by remember { mutableStateOf(false) }
+        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+        val imagePickerLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                selectedImageUri = uri
+                selectedImageUri?.let {
+                    val fileName = "(Attached Image :" + it.lastPathSegment?.substringAfterLast("/") + ")"
+                    postContent += "\n"
+                    postContent += fileName
+                }
+            }
         if (currentUser != null) {
             Text(
                 text = "Hello, ${currentUser.name}",
@@ -170,6 +195,12 @@ fun ApplicationScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Send, contentDescription = "Post")
                 }
+                IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                    Icon(
+                        imageVector = Icons.Default.AttachFile,
+                        contentDescription = "Select Image"
+                    )
+                }
             }
             if (showDialog) {
                 AlertDialog(
@@ -180,7 +211,7 @@ fun ApplicationScreen(
                         Button(
                             onClick = {
                                 userPostRepository.savePost(postContent) { _, _ -> }
-                                postContent = ""  // Clear the TextField after saving
+                                postContent = ""
                                 showDialog = false
                             }
                         ) {
@@ -249,7 +280,9 @@ fun UserPostPage(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
     ) {
         UserPostUI(userPost, onClick = {
             navController.navigate("UserProfilePage/${userPost.authorId}")
@@ -299,7 +332,8 @@ fun UserProfilePage(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
 
