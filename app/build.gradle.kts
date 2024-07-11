@@ -53,6 +53,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.firebaseui:firebase-ui-auth:7.2.0")
     implementation("com.google.gms:google-services:4.4.2")
+    implementation("com.google.firebase:firebase-database")
 
 
     implementation("androidx.core:core-ktx:1.13.1")

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.fin.model.UserPost
+import com.example.fin.repository.FireStoreRepository
 import com.example.fin.repository.UserPostRepository
 import com.example.fin.repository.UserRepository
 import com.example.fin.ui.posts.UserPostUI
@@ -27,11 +28,15 @@ import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.AuthUI.IdpConfig.EmailBuilder
 import com.firebase.ui.auth.AuthUI.IdpConfig.GoogleBuilder
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
-    private val userPostRepository = UserPostRepository()
+    private val fireStoreRepository = FireStoreRepository()
+    private val userPostRepository = UserPostRepository(fireStoreRepository)
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
@@ -42,6 +47,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
 
         setContent {
             FinTheme {
