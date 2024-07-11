@@ -37,6 +37,7 @@ fun ReplyInput(onReply: (String) -> Unit) {
             value = input,
             onValueChange = { input = it }
         )
+
         IconButton(
             modifier = Modifier
                 .clip(CircleShape)

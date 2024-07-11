@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 class UserRepository private constructor() {
 
     private val _currentUser = MutableStateFlow<ApplicationUser?>(null)
+
     val currentUser: StateFlow<ApplicationUser?> = _currentUser
 
     init {

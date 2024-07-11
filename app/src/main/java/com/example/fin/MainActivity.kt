@@ -53,8 +53,8 @@ class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
     private val fireStoreRepository = FirestoreRepository()
     private val userPostRepository = UserPostRepository(fireStoreRepository)
-    private val userDataRepository = UserDataRepository()
     private val repliesRepository = RepliesRepository()
+    private val userDataRepository = UserDataRepository()
 
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
                                 signInLauncher = signInLauncher,
                             )
                         }
+
                         composable(
                             route = "UserPostPage/{userPostId}",
                             arguments = listOf(navArgument("userPostId") {
@@ -155,10 +156,24 @@ fun ApplicationScreen(
             Text(
                 text = "Hello, ${currentUser.name}",
             )
-            Button(
-                onClick = { FirebaseAuth.getInstance().signOut() },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Sign Out", color = Color.White)
+                Button(
+                    onClick = {
+                        navController.navigate("UserProfilePage/${currentUser.id}")
+                    },
+                ) {
+                    Text(text = "My Profile", color = Color.White)
+                }
+
+                Button(
+                    onClick = { FirebaseAuth.getInstance().signOut() },
+                ) {
+                    Text(text = "Sign Out", color = Color.White)
+                }
             }
 //            CreatePostUI(postViewModel = postViewModel)
             Row(modifier = Modifier.padding(top = 8.dp)) {
@@ -168,6 +183,7 @@ fun ApplicationScreen(
                     label = { Text("Create a post") },
                     modifier = Modifier.weight(1f)
                 )
+
                 IconButton(
                     onClick = {
                         if (postContent.isNotBlank()) {
@@ -245,7 +261,9 @@ fun UserPostPage(
     repliesRepository: RepliesRepository
 ) {
     var userPost by remember { mutableStateOf(UserPost()) }
+
     var replies by remember { mutableStateOf<List<Reply>>(emptyList()) }
+
     val currentUser = userRepository.currentUser.collectAsState().value
 
 
@@ -296,7 +314,7 @@ fun UserProfilePage(
     userDataRepository: UserDataRepository,
     userRepository: UserRepository
 ) {
-    val currentUser = userRepository.currentUser.collectAsState().value
+//    val currentUser = userRepository.currentUser.collectAsState().value
 
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
@@ -341,7 +359,6 @@ private fun createSignInIntent(): Intent {
     val providers = listOf(
         EmailBuilder().build(), GoogleBuilder().build()
     )
-
     return AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
         .setAlwaysShowSignInMethodScreen(false).setIsSmartLockEnabled(false).build()
 }
