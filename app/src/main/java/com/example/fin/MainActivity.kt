@@ -20,13 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +29,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -60,8 +53,8 @@ class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
     private val fireStoreRepository = FirestoreRepository()
     private val userPostRepository = UserPostRepository(fireStoreRepository)
-    private val userDataRepository = UserDataRepository()
     private val repliesRepository = RepliesRepository()
+    private val userDataRepository = UserDataRepository()
 
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -94,6 +87,7 @@ class MainActivity : ComponentActivity() {
                                 signInLauncher = signInLauncher,
                             )
                         }
+
                         composable(
                             route = "UserPostPage/{userPostId}",
                             arguments = listOf(navArgument("userPostId") {
@@ -162,10 +156,24 @@ fun ApplicationScreen(
             Text(
                 text = "Hello, ${currentUser.name}",
             )
-            Button(
-                onClick = { FirebaseAuth.getInstance().signOut() },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Sign Out", color = Color.White)
+                Button(
+                    onClick = {
+                        navController.navigate("UserProfilePage/${currentUser.id}")
+                    },
+                ) {
+                    Text(text = "My Profile", color = Color.White)
+                }
+
+                Button(
+                    onClick = { FirebaseAuth.getInstance().signOut() },
+                ) {
+                    Text(text = "Sign Out", color = Color.White)
+                }
             }
 //            CreatePostUI(postViewModel = postViewModel)
             Row(modifier = Modifier.padding(top = 8.dp)) {
@@ -175,6 +183,7 @@ fun ApplicationScreen(
                     label = { Text("Create a post") },
                     modifier = Modifier.weight(1f)
                 )
+
                 IconButton(
                     onClick = {
                         if (postContent.isNotBlank()) {
@@ -252,7 +261,9 @@ fun UserPostPage(
     repliesRepository: RepliesRepository
 ) {
     var userPost by remember { mutableStateOf(UserPost()) }
+
     var replies by remember { mutableStateOf<List<Reply>>(emptyList()) }
+
     val currentUser = userRepository.currentUser.collectAsState().value
 
 
@@ -303,7 +314,7 @@ fun UserProfilePage(
     userDataRepository: UserDataRepository,
     userRepository: UserRepository
 ) {
-    val currentUser = userRepository.currentUser.collectAsState().value
+//    val currentUser = userRepository.currentUser.collectAsState().value
 
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
@@ -348,7 +359,6 @@ private fun createSignInIntent(): Intent {
     val providers = listOf(
         EmailBuilder().build(), GoogleBuilder().build()
     )
-
     return AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
         .setAlwaysShowSignInMethodScreen(false).setIsSmartLockEnabled(false).build()
 }

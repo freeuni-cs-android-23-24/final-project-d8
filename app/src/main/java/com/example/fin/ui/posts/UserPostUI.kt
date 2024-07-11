@@ -49,12 +49,27 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                 .padding(10.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                text = userPost.authorName,
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.profile),
+                    contentDescription = "Profile picture",
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                )
+
+                Text(
+                    modifier = Modifier.padding(start = 10.dp),
+                    text = userPost.authorName,
+                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
             Text(
                 text = DateUtils.getDateTime(userPost.timestamp.toString()),
                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold),
