@@ -274,7 +274,7 @@ fun UserProfilePage(
     userDataRepository: UserDataRepository,
     userRepository: UserRepository
 ) {
-    val currentUser = userRepository.currentUser.collectAsState().value
+//    val currentUser = userRepository.currentUser.collectAsState().value
 
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }

@@ -64,6 +64,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                         .size(36.dp)
                         .clip(CircleShape)
                 )
+
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
                     text = userPost.authorName,
