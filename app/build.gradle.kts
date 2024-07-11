@@ -54,6 +54,7 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-auth:7.2.0")
     implementation("com.google.gms:google-services:4.4.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation("com.google.firebase:firebase-database")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")

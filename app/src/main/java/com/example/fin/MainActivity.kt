@@ -26,9 +26,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.fin.model.Reply
 import com.example.fin.model.UserPost
-import com.example.fin.repository.RepliesRepository
+import com.example.fin.repository.FirestoreRepository
 import com.example.fin.repository.UserPostRepository
 import com.example.fin.repository.UserRepository
 import com.example.fin.ui.posts.UserPostUI
@@ -40,11 +39,10 @@ import com.firebase.ui.auth.AuthUI.IdpConfig.EmailBuilder
 import com.firebase.ui.auth.AuthUI.IdpConfig.GoogleBuilder
 import com.google.firebase.auth.FirebaseAuth
 
-
 class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
-    private val userPostRepository = UserPostRepository()
-    private val repliesRepository = RepliesRepository()
+    private val fireStoreRepository = FirestoreRepository()
+    private val userPostRepository = UserPostRepository(fireStoreRepository)
 
     private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
@@ -55,6 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
 
         setContent {
             FinTheme {
@@ -85,6 +84,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
 
 @Composable
