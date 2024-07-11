@@ -276,8 +276,6 @@ fun UserProfilePage(
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
 
-    print(userId)
-
     userDataRepository.getUserById(userId) { result, _ ->
         if (result != null) {
             user = result
@@ -299,7 +297,8 @@ fun UserProfilePage(
 
         if (posts.isNotEmpty()) {
             Text(
-                text = "${user.name}'s posts",
+                modifier = Modifier.padding(10.dp),
+                text = "${user.name}'s posts:",
             )
         }
 

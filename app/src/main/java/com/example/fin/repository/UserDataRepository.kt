@@ -9,30 +9,22 @@ class UserDataRepository {
     private val userDataCollection = firestore.collection("userData")
 
     fun saveUserData(user: FirebaseUser, onComplete: (Boolean, String?) -> Unit) {
-        var foundUser = ApplicationUser()
-
         getUserById(user.uid) { result, _ ->
-            if (result != null) {
-                foundUser = result
+            if (result == null) {
+                val applicationUser = ApplicationUser(
+                    id = user.uid,
+                    email = user.email.toString(),
+                    name = user.displayName.toString(),
+                )
+                userDataCollection.add(applicationUser)
+                    .addOnSuccessListener {
+                        onComplete(true, null)
+                    }
+                    .addOnFailureListener { exception ->
+                        onComplete(false, exception.message)
+                    }
             }
         }
-
-        if (foundUser.id.isNotBlank()) {
-            onComplete(true, null)
-        }
-
-        val applicationUser = ApplicationUser(
-            id = user.uid,
-            email = user.email.toString(),
-            name = user.displayName.toString(),
-        )
-        userDataCollection.add(applicationUser)
-            .addOnSuccessListener {
-                onComplete(true, null)
-            }
-            .addOnFailureListener { exception ->
-                onComplete(false, exception.message)
-            }
     }
 
     fun getUserById(userId: String, onComplete: (ApplicationUser?, String?) -> Unit) {
