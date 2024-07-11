@@ -64,7 +64,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
             Text(
                 modifier = Modifier.padding(top = 12.dp),
                 text = userPost.postBodyText,
-                style = TextStyle(fontSize = 14.sp),
+                style = TextStyle(fontSize = 16.sp),
                 color = Color.DarkGray
             )
         }
