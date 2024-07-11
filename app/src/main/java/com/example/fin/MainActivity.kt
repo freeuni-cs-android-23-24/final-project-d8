@@ -2,22 +2,32 @@ package com.example.fin
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -46,12 +56,14 @@ class MainActivity : ComponentActivity() {
     private val userDataRepository = UserDataRepository()
     private val repliesRepository = RepliesRepository()
 
-    private val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-        val currentUser = FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
-        userRepository.update(currentUser)
-        userDataRepository.saveUserData(currentUser, { _, _ -> })
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            val currentUser =
+                FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
+            userRepository.update(currentUser)
+            userDataRepository.saveUserData(currentUser, { _, _ -> })
 
-    }
+        }
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,10 +89,13 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             route = "UserPostPage/{userPostId}",
-                            arguments = listOf(navArgument("userPostId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("userPostId") {
+                                type = NavType.StringType
+                            })
                         ) { backStackEntry ->
                             UserPostPage(
-                                userPostId = backStackEntry.arguments?.getString("userPostId") ?: "",
+                                userPostId = backStackEntry.arguments?.getString("userPostId")
+                                    ?: "",
                                 navController = navController,
                                 userPostRepository = userPostRepository,
                                 userRepository = userRepository,
@@ -117,34 +132,33 @@ fun ApplicationScreen(
 ) {
     //val postViewModel: PostViewModel = viewModel()
     Column(
-        modifier = Modifier.padding(10.dp).fillMaxSize().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         var userPosts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
         val currentUser = userRepository.currentUser.collectAsState().value
         var postContent by remember { mutableStateOf("") }
         var showDialog by remember { mutableStateOf(false) }
+        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+        val imagePickerLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                selectedImageUri = uri
+                selectedImageUri?.let {
+                    val fileName = "(Attached Image :" + it.lastPathSegment?.substringAfterLast("/") + ")"
+                    postContent += "\n"
+                    postContent += fileName
+                }
+            }
         if (currentUser != null) {
             Text(
                 text = "Hello, ${currentUser.name}",
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Button(
+                onClick = { FirebaseAuth.getInstance().signOut() },
             ) {
-                Button(
-                    onClick = {
-                        navController.navigate("UserProfilePage/${currentUser.id}")
-                    },
-                ) {
-                    Text(text = "My Profile", color = Color.White)
-                }
-                Button(
-                    onClick = { FirebaseAuth.getInstance().signOut() },
-                ) {
-                    Text(text = "Sign Out", color = Color.White)
-                }
+                Text(text = "Sign Out", color = Color.White)
             }
 //            CreatePostUI(postViewModel = postViewModel)
             Row(modifier = Modifier.padding(top = 8.dp)) {
@@ -163,6 +177,12 @@ fun ApplicationScreen(
                 ) {
                     Icon(imageVector = Icons.Default.Send, contentDescription = "Post")
                 }
+                IconButton(onClick = { imagePickerLauncher.launch("image/*") }) {
+                    Icon(
+                        imageVector = Icons.Default.AttachFile,
+                        contentDescription = "Select Image"
+                    )
+                }
             }
             if (showDialog) {
                 AlertDialog(
@@ -173,7 +193,7 @@ fun ApplicationScreen(
                         Button(
                             onClick = {
                                 userPostRepository.savePost(postContent) { _, _ -> }
-                                postContent = ""  // Clear the TextField after saving
+                                postContent = ""
                                 showDialog = false
                             }
                         ) {
@@ -242,7 +262,9 @@ fun UserPostPage(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
     ) {
         UserPostUI(userPost, onClick = {
             navController.navigate("UserProfilePage/${userPost.authorId}")
@@ -279,6 +301,8 @@ fun UserProfilePage(
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
 
+    print(userId)
+
     userDataRepository.getUserById(userId) { result, _ ->
         if (result != null) {
             user = result
@@ -292,7 +316,8 @@ fun UserProfilePage(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
 
@@ -300,8 +325,7 @@ fun UserProfilePage(
 
         if (posts.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(10.dp),
-                text = "${user.name}'s posts:",
+                text = "${user.name}'s posts",
             )
         }
 
