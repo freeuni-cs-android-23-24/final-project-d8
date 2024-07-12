@@ -17,7 +17,7 @@ class UserDataRepository {
                     id = user.uid,
                     email = user.email.toString(),
                     name = user.displayName.toString(),
-                    isModerator = false,
+                    moderator = false,
                 )
 
                 userDataCollection.add(applicationUser)

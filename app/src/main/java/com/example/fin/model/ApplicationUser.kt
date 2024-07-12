@@ -4,5 +4,5 @@ data class ApplicationUser(
     val id: String = "",
     val email: String = "",
     val name: String = "",
-    val isModerator: Boolean = false
+    val moderator: Boolean = false
 )

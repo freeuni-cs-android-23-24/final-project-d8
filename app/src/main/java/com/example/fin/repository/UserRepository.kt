@@ -30,7 +30,7 @@ class UserRepository private constructor() {
     }
 
     fun update(user: ApplicationUser) {
-        val applicationUser = ApplicationUser(user.id, user.email, user.name, user.isModerator)
+        val applicationUser = ApplicationUser(user.id, user.email, user.name, user.moderator)
         _currentUser.value = applicationUser
     }
 

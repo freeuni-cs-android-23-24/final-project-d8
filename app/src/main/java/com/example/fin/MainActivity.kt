@@ -240,7 +240,7 @@ fun ApplicationScreen(
         for (post in userPosts) {
             var deleteEnabled = false;
             if (currentUser != null) {
-                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+                deleteEnabled = currentUser.id == post.authorId || currentUser.moderator
             }
             UserPostUI(
                 post,
@@ -298,7 +298,7 @@ fun UserPostPage(
     ) {
         var postDeleteEnabled = false;
         if (currentUser != null) {
-            postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.isModerator
+            postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.moderator
         }
         UserPostUI(userPost,
             postDeleteEnabled,
@@ -324,7 +324,7 @@ fun UserPostPage(
         for (reply in replies) {
             var replyDeleteEnabled = false;
             if (currentUser != null) {
-                replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.isModerator
+                replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.moderator
             }
             if (reply.enabled) {
                 ReplyItem(reply,
@@ -389,7 +389,7 @@ fun UserProfilePage(
         for (post in posts) {
             var deleteEnabled = false;
             if (currentUser != null) {
-                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+                deleteEnabled = currentUser.id == post.authorId || currentUser.moderator
             }
             UserPostUI(post,
                 deleteEnabled,
