@@ -29,8 +29,8 @@ class UserRepository private constructor() {
         }
     }
 
-    fun update(user: FirebaseUser) {
-        val applicationUser = ApplicationUser(user.uid, user.email ?: "N/A", user.displayName ?: "N/A")
+    fun update(user: ApplicationUser) {
+        val applicationUser = ApplicationUser(user.id, user.email, user.name, user.isModerator)
         _currentUser.value = applicationUser
     }
 

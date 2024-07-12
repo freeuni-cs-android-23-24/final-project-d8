@@ -15,6 +15,7 @@ class RepliesRepository {
             val reply = Reply(
                 authorId = currentUser.uid,
                 authorName = currentUser.displayName ?: "N/A",
+                enabled = true,
                 postId = postId,
                 text = text
             )
@@ -44,6 +45,17 @@ class RepliesRepository {
             }
             .addOnFailureListener { exception ->
                 onComplete(null, exception.message)
+            }
+    }
+
+    fun disableReply(replyId: String, onComplete: (Boolean, String?) -> Unit) {
+        repliesCollection.document(replyId)
+            .update("enabled", false)
+            .addOnSuccessListener {
+                onComplete(true, null)
+            }
+            .addOnFailureListener { exception ->
+                onComplete(false, exception.message)
             }
     }
 }

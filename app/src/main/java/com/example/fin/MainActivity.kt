@@ -21,10 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -57,8 +53,9 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val currentUser =
                 FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
-            userRepository.update(currentUser)
-            userDataRepository.saveUserData(currentUser, { _, _ -> })
+            userDataRepository.saveUserData(currentUser) { result, _ ->
+                userRepository.update(result)
+            }
 
         }
 
@@ -240,9 +237,26 @@ fun ApplicationScreen(
         }
 
         for (post in userPosts) {
-            UserPostUI(post, onClick = {
-                navController.navigate("UserPostPage/${post.userPostId}")
-            })
+            var deleteEnabled = false;
+            if (currentUser != null) {
+                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+            }
+            UserPostUI(
+                post,
+                deleteEnabled,
+                onClick = {
+                    navController.navigate("UserPostPage/${post.userPostId}")
+                },
+                onDeleteClick = {
+                    userPostRepository.disablePost(post.userPostId) { _, _ -> }
+                    userPostRepository.getAllPosts { result, _ ->
+                        if (result != null) {
+                            userPosts = result
+                        }
+                    }
+                }
+            )
+
         }
 
     }
@@ -281,9 +295,20 @@ fun UserPostPage(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        UserPostUI(userPost, onClick = {
-            navController.navigate("UserProfilePage/${userPost.authorId}")
-        })
+        var postDeleteEnabled = false;
+        if (currentUser != null) {
+            postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.isModerator
+        }
+        UserPostUI(userPost,
+            postDeleteEnabled,
+            onClick = {
+                navController.navigate("UserProfilePage/${userPost.authorId}")
+            },
+            onDeleteClick = {
+                userPostRepository.disablePost(userPost.userPostId) { _, _ -> }
+                navController.navigate("ApplicationScreen")
+            }
+        )
         if (currentUser != null) {
             ReplyInput { reply ->
                 repliesRepository.saveReply(reply, userPostId) { _, _ -> }
@@ -296,9 +321,26 @@ fun UserPostPage(
         }
 
         for (reply in replies) {
-            ReplyItem(reply, onClick = {
-                navController.navigate("UserProfilePage/${reply.authorId}")
-            })
+            var replyDeleteEnabled = false;
+            if (currentUser != null) {
+                replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.isModerator
+            }
+            if (reply.enabled) {
+                ReplyItem(reply,
+                    deleteEnabled = replyDeleteEnabled,
+                    onClick = {
+                        navController.navigate("UserProfilePage/${reply.authorId}")
+                    },
+                    onDeleteClick = {
+                        repliesRepository.disableReply(replyId = reply.replyId) { _, _ -> }
+                        repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
+                            if (result != null) {
+                                replies = result
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -311,12 +353,10 @@ fun UserProfilePage(
     userDataRepository: UserDataRepository,
     userRepository: UserRepository
 ) {
-//    val currentUser = userRepository.currentUser.collectAsState().value
+    val currentUser = userRepository.currentUser.collectAsState().value
 
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
-
-    print(userId)
 
     userDataRepository.getUserById(userId) { result, _ ->
         if (result != null) {
@@ -346,9 +386,25 @@ fun UserProfilePage(
         }
 
         for (post in posts) {
-            UserPostUI(post, onClick = {
-                navController.navigate("UserPostPage/${post.userPostId}")
-            })
+            var deleteEnabled = false;
+            if (currentUser != null) {
+                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+            }
+            UserPostUI(post,
+                deleteEnabled,
+                onClick = {
+                    navController.navigate("UserPostPage/${post.userPostId}")
+                },
+                onDeleteClick = {
+                    userPostRepository.disablePost(post.userPostId) { _, _ -> }
+                    userPostRepository.getPostsByUser(userId) { result, _ ->
+                        if (result != null) {
+                            posts = result
+                        }
+                    }
+                }
+            )
+
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.example.fin.repository
 
 import com.example.fin.model.UserPost
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
@@ -20,7 +19,9 @@ class FirestoreRepository {
     }
 
     fun getAllPosts(onComplete: (List<UserPost>?, String?) -> Unit) {
-        postsCollection.orderBy("timestamp", Query.Direction.DESCENDING)
+        postsCollection
+            .whereEqualTo("enabled", true)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
                 val posts = result.map { document ->
@@ -51,7 +52,9 @@ class FirestoreRepository {
     }
 
     fun getPostsByUser(authorId: String, onComplete: (List<UserPost>?, String?) -> Unit) {
-        postsCollection.whereEqualTo("authorId", authorId)
+        postsCollection
+            .whereEqualTo("enabled", true)
+            .whereEqualTo("authorId", authorId)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
@@ -64,6 +67,17 @@ class FirestoreRepository {
             }
             .addOnFailureListener { exception ->
                 onComplete(null, exception.message)
+            }
+    }
+
+    fun disablePostByPostId(postId: String, onComplete: (Boolean, String?) -> Unit) {
+        postsCollection.document(postId)
+            .update("enabled", false)
+            .addOnSuccessListener {
+                onComplete(true, null)
+            }
+            .addOnFailureListener { exception ->
+                onComplete(false, exception.message)
             }
     }
 }

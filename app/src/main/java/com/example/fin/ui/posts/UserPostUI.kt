@@ -7,11 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +27,7 @@ import com.example.fin.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
+fun UserPostUI(userPost: UserPost, deleteEnabled: Boolean, onClick: () -> Unit, onDeleteClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,7 +40,7 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
             .padding(10.dp),
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        elevation =  CardDefaults.cardElevation(
+        elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
         ),
         colors = CardDefaults.cardColors(
@@ -53,25 +52,43 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                 .padding(10.dp)
                 .fillMaxWidth()
         ) {
+            var menuExtended by remember { mutableStateOf(false) }
             Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "Profile picture",
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.profile),
+                        contentDescription = "Profile picture",
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                    )
 
-                Text(
-                    modifier = Modifier.padding(start = 10.dp),
-                    text = userPost.authorName,
-                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    Text(
+                        modifier = Modifier.padding(start = 10.dp),
+                        text = userPost.authorName,
+                        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (deleteEnabled) {
+                    Row {
+                        IconButton(onClick = { menuExtended = !menuExtended }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Details")
+                        }
+                        DropdownMenu(expanded = menuExtended, onDismissRequest = { menuExtended = false }) {
+                            DropdownMenuItem({ Text(text = "Delete") }, onClick = onDeleteClick)
+                        }
+                    }
+                }
             }
 
             Text(

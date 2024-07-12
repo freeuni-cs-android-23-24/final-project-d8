@@ -31,4 +31,8 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
     fun getPostsByUser(authorId: String, onComplete: (List<UserPost>?, String?) -> Unit) {
         firestoreRepository.getPostsByUser(authorId, onComplete)
     }
+
+    fun disablePost(postId: String, onComplete: (Boolean, String?) -> Unit) {
+        firestoreRepository.disablePostByPostId(postId, onComplete)
+    }
 }
