@@ -1,6 +1,7 @@
 package com.example.fin.repository
 
 import com.example.fin.model.ApplicationUser
+import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 class UserRepository private constructor() {
 
     private val _currentUser = MutableStateFlow<ApplicationUser?>(null)
+
+    private val userDataRepository = UserDataRepository()
 
     val currentUser: StateFlow<ApplicationUser?> = _currentUser
 
@@ -21,8 +24,9 @@ class UserRepository private constructor() {
         FirebaseAuth.getInstance().addAuthStateListener { auth ->
             val user = auth.currentUser
             if (user != null) {
-                val applicationUser = ApplicationUser(user.uid, user.email ?: "N/A", user.displayName ?: "N/A")
-                _currentUser.value = applicationUser
+                userDataRepository.getUserById(user.uid) { result, _ ->
+                    _currentUser.value = result
+                }
             } else {
                 _currentUser.value = null
             }
