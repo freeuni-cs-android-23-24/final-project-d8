@@ -4,12 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.example.fin.model.ApplicationUser
@@ -38,6 +33,7 @@ fun UserPostPage(
 
     val currentUser = userRepository.currentUser.collectAsState().value
 
+    println("!!!!!!!!!!!!!!!!!!!!!!!!!" + currentUser.toString())
 
     userPostRepository.getPostById(userPostId) { result, _ ->
         if (result != null) {
@@ -56,8 +52,8 @@ fun UserPostPage(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        var postDeleteEnabled = false;
-        var profileUrl by remember { mutableStateOf<String>("") }
+        var postDeleteEnabled = false
+        var profileUrl by remember { mutableStateOf("") }
         if (currentUser != null) {
             postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.moderator
         }
@@ -80,17 +76,19 @@ fun UserPostPage(
 
         if (currentUser != null) {
             ReplyInput { reply ->
-                repliesRepository.saveReply(reply, userPostId) { _, _ -> }
-                repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
-                    if (result != null) {
-                        replies = result
+                if (reply.isNotBlank()) {
+                    repliesRepository.saveReply(reply, userPostId, currentUser.id) { _, _ -> }
+                    repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
+                        if (result != null) {
+                            replies = result
+                        }
                     }
                 }
             }
         }
 
         for (reply in replies) {
-            var replyDeleteEnabled = false;
+            var replyDeleteEnabled = false
             if (currentUser != null) {
                 replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.moderator
             }

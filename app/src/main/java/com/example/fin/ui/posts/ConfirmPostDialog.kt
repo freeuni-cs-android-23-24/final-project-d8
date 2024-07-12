@@ -7,8 +7,6 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun ConfirmPostDialog(
-    postContent: String,
-    fileName: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
