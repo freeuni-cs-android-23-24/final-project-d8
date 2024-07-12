@@ -43,9 +43,9 @@ class FirestoreRepository {
             .addOnSuccessListener { result ->
                 val posts = result.mapNotNull { document ->
                     val post = document.toObject(UserPost::class.java)
-                    post.copy(userPostId = document.id)
-                    if (post.postBodyText.contains(searchTerm, ignoreCase = true)) {
-                        post
+                    val updatedPost = post.copy(userPostId = document.id)
+                    if (updatedPost.postBodyText.contains(searchTerm, ignoreCase = true)) {
+                        updatedPost
                     } else {
                         null
                     }
@@ -56,6 +56,7 @@ class FirestoreRepository {
                 onComplete(null, exception.message)
             }
     }
+
     fun getPostById(userPostId: String, onComplete: (UserPost?, String?) -> Unit) {
         postsCollection.document(userPostId)
             .get()
