@@ -5,33 +5,44 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.LightGray
-import androidx.compose.ui.text.Placeholder
+
+import androidx.compose.ui.res.painterResource
+
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import coil.compose.AsyncImage
+
+
+import com.example.fin.R
 
 import com.example.fin.model.UserPost
 import com.example.fin.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
+fun UserPostUI(userPost: UserPost, deleteEnabled: Boolean, onClick: () -> Unit, onDeleteClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -56,12 +67,45 @@ fun UserPostUI(userPost: UserPost, onClick: () -> Unit) {
                 .padding(10.dp)
                 .fillMaxWidth()
         ) {
-            Text(
-                text = userPost.authorName,
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            var menuExtended by remember { mutableStateOf(false) }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.profile),
+                        contentDescription = "Profile picture",
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(start = 10.dp),
+                        text = userPost.authorName,
+                        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (deleteEnabled) {
+                    Row {
+                        IconButton(onClick = { menuExtended = !menuExtended }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Details")
+                        }
+                        DropdownMenu(expanded = menuExtended, onDismissRequest = { menuExtended = false }) {
+                            DropdownMenuItem({ Text(text = "Delete") }, onClick = onDeleteClick)
+                        }
+                    }
+                }
+            }
+
             Text(
                 text = DateUtils.getDateTime(userPost.timestamp.toString()),
                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold),

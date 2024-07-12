@@ -10,32 +10,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -60,15 +46,16 @@ class MainActivity : ComponentActivity() {
     private val userRepository = UserRepository.getInstance()
     private val fireStoreRepository = FirestoreRepository()
     private val userPostRepository = UserPostRepository(fireStoreRepository)
-    private val userDataRepository = UserDataRepository()
     private val repliesRepository = RepliesRepository()
+    private val userDataRepository = UserDataRepository()
 
     private val signInLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             val currentUser =
                 FirebaseAuth.getInstance().currentUser ?: return@registerForActivityResult
-            userRepository.update(currentUser)
-            userDataRepository.saveUserData(currentUser, { _, _ -> })
+            userDataRepository.saveUserData(currentUser) { result, _ ->
+                userRepository.update(result)
+            }
 
         }
 
@@ -94,6 +81,7 @@ class MainActivity : ComponentActivity() {
                                 signInLauncher = signInLauncher,
                             )
                         }
+
                         composable(
                             route = "UserPostPage/{userPostId}",
                             arguments = listOf(navArgument("userPostId") {
@@ -163,10 +151,24 @@ fun ApplicationScreen(
             Text(
                 text = "Hello, ${currentUser.name}",
             )
-            Button(
-                onClick = { FirebaseAuth.getInstance().signOut() },
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Sign Out", color = Color.White)
+                Button(
+                    onClick = {
+                        navController.navigate("UserProfilePage/${currentUser.id}")
+                    },
+                ) {
+                    Text(text = "My Profile", color = Color.White)
+                }
+
+                Button(
+                    onClick = { FirebaseAuth.getInstance().signOut() },
+                ) {
+                    Text(text = "Sign Out", color = Color.White)
+                }
             }
 //            CreatePostUI(postViewModel = postViewModel)
             Row(modifier = Modifier.padding(top = 8.dp)) {
@@ -176,6 +178,7 @@ fun ApplicationScreen(
                     label = { Text("Create a post") },
                     modifier = Modifier.weight(1f)
                 )
+
                 IconButton(
                     onClick = {
                         if (postContent.isNotBlank()) {
@@ -235,9 +238,26 @@ fun ApplicationScreen(
             }
         }
         for (post in userPosts) {
-            UserPostUI(post, onClick = {
-                navController.navigate("UserPostPage/${post.userPostId}")
-            })
+            var deleteEnabled = false;
+            if (currentUser != null) {
+                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+            }
+            UserPostUI(
+                post,
+                deleteEnabled,
+                onClick = {
+                    navController.navigate("UserPostPage/${post.userPostId}")
+                },
+                onDeleteClick = {
+                    userPostRepository.disablePost(post.userPostId) { _, _ -> }
+                    userPostRepository.getAllPosts { result, _ ->
+                        if (result != null) {
+                            userPosts = result
+                        }
+                    }
+                }
+            )
+
         }
 
     }
@@ -253,7 +273,9 @@ fun UserPostPage(
     repliesRepository: RepliesRepository
 ) {
     var userPost by remember { mutableStateOf(UserPost()) }
+
     var replies by remember { mutableStateOf<List<Reply>>(emptyList()) }
+
     val currentUser = userRepository.currentUser.collectAsState().value
 
 
@@ -274,9 +296,20 @@ fun UserPostPage(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        UserPostUI(userPost, onClick = {
-            navController.navigate("UserProfilePage/${userPost.authorId}")
-        })
+        var postDeleteEnabled = false;
+        if (currentUser != null) {
+            postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.isModerator
+        }
+        UserPostUI(userPost,
+            postDeleteEnabled,
+            onClick = {
+                navController.navigate("UserProfilePage/${userPost.authorId}")
+            },
+            onDeleteClick = {
+                userPostRepository.disablePost(userPost.userPostId) { _, _ -> }
+                navController.navigate("ApplicationScreen")
+            }
+        )
         if (currentUser != null) {
             ReplyInput { reply ->
                 repliesRepository.saveReply(reply, userPostId) { _, _ -> }
@@ -289,9 +322,26 @@ fun UserPostPage(
         }
 
         for (reply in replies) {
-            ReplyItem(reply, onClick = {
-                navController.navigate("UserProfilePage/${reply.authorId}")
-            })
+            var replyDeleteEnabled = false;
+            if (currentUser != null) {
+                replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.isModerator
+            }
+            if (reply.enabled) {
+                ReplyItem(reply,
+                    deleteEnabled = replyDeleteEnabled,
+                    onClick = {
+                        navController.navigate("UserProfilePage/${reply.authorId}")
+                    },
+                    onDeleteClick = {
+                        repliesRepository.disableReply(replyId = reply.replyId) { _, _ -> }
+                        repliesRepository.getRepliesByPostId(userPost.userPostId) { result, _ ->
+                            if (result != null) {
+                                replies = result
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -308,8 +358,6 @@ fun UserProfilePage(
 
     var user by remember { mutableStateOf(ApplicationUser()) }
     var posts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
-
-    print(userId)
 
     userDataRepository.getUserById(userId) { result, _ ->
         if (result != null) {
@@ -333,14 +381,31 @@ fun UserProfilePage(
 
         if (posts.isNotEmpty()) {
             Text(
+                modifier = Modifier.padding(10.dp),
                 text = "${user.name}'s posts",
             )
         }
 
         for (post in posts) {
-            UserPostUI(post, onClick = {
-                navController.navigate("UserPostPage/${post.userPostId}")
-            })
+            var deleteEnabled = false;
+            if (currentUser != null) {
+                deleteEnabled = currentUser.id == post.authorId || currentUser.isModerator
+            }
+            UserPostUI(post,
+                deleteEnabled,
+                onClick = {
+                    navController.navigate("UserPostPage/${post.userPostId}")
+                },
+                onDeleteClick = {
+                    userPostRepository.disablePost(post.userPostId) { _, _ -> }
+                    userPostRepository.getPostsByUser(userId) { result, _ ->
+                        if (result != null) {
+                            posts = result
+                        }
+                    }
+                }
+            )
+
         }
     }
 }
@@ -349,7 +414,6 @@ private fun createSignInIntent(): Intent {
     val providers = listOf(
         EmailBuilder().build(), GoogleBuilder().build()
     )
-
     return AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
         .setAlwaysShowSignInMethodScreen(false).setIsSmartLockEnabled(false).build()
 }

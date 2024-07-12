@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 class UserRepository private constructor() {
 
     private val _currentUser = MutableStateFlow<ApplicationUser?>(null)
+
     val currentUser: StateFlow<ApplicationUser?> = _currentUser
 
     init {
@@ -28,8 +29,8 @@ class UserRepository private constructor() {
         }
     }
 
-    fun update(user: FirebaseUser) {
-        val applicationUser = ApplicationUser(user.uid, user.email ?: "N/A", user.displayName ?: "N/A")
+    fun update(user: ApplicationUser) {
+        val applicationUser = ApplicationUser(user.id, user.email, user.name, user.isModerator)
         _currentUser.value = applicationUser
     }
 

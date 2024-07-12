@@ -5,6 +5,7 @@ data class Reply(
     val authorId: String = "",
     val authorName: String = "",
     val postId: String = "",
+    val enabled: Boolean = true,
     val text: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )

@@ -9,7 +9,6 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
 
     fun savePost(bodyText: String, imageUri: Uri?, onComplete: (Boolean, String?) -> Unit) {
         val currentUser = FirebaseAuth.getInstance().currentUser
-
         if (imageUri != null) {
             uploadImageToStorage(imageUri) { result, _ ->
                 if (currentUser != null) {
@@ -24,6 +23,7 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
                     onComplete(false, "User not authenticated")
                 }
             }
+
         }
         else {
             if (currentUser != null) {
@@ -50,5 +50,9 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
 
     fun getPostsByUser(authorId: String, onComplete: (List<UserPost>?, String?) -> Unit) {
         firestoreRepository.getPostsByUser(authorId, onComplete)
+    }
+
+    fun disablePost(postId: String, onComplete: (Boolean, String?) -> Unit) {
+        firestoreRepository.disablePostByPostId(postId, onComplete)
     }
 }
