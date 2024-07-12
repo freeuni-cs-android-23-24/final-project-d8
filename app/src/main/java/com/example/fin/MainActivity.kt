@@ -199,7 +199,7 @@ fun ApplicationScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                userPostRepository.savePost(postContent) { _, _ -> }
+                                userPostRepository.savePost(postContent, selectedImageUri.toString()) { _, _ -> }
                                 postContent = ""
                                 showDialog = false
                             }
@@ -232,7 +232,6 @@ fun ApplicationScreen(
                 userPosts = result
             }
         }
-
         for (post in userPosts) {
             UserPostUI(post, onClick = {
                 navController.navigate("UserPostPage/${post.userPostId}")

@@ -55,6 +55,7 @@ dependencies {
     implementation("com.google.gms:google-services:4.4.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
     implementation("com.google.firebase:firebase-database")
+    implementation("io.coil-kt:coil-compose:2.2.2")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
@@ -67,6 +68,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.0")
+    implementation("com.android.volley:volley:1.2.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

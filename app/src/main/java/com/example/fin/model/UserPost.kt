@@ -5,6 +5,6 @@ data class UserPost(
     val authorId: String = "",
     val authorName: String = "",
     val postBodyText: String = "",
-    val imageUrl: String? = null,
+    val imageUrl: String? = "",
     val timestamp: Long = System.currentTimeMillis()
 )
