@@ -35,8 +35,9 @@ fun UserProfileUI(user: ApplicationUser) {
                 model = user.profileUrl,
                 contentDescription = "Profile picture",
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape),
+                    .size(72.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp)),
                 placeholder = painterResource(id = R.drawable.profile),
                 error = painterResource(id = R.drawable.profile),
                 contentScale = ContentScale.Crop

@@ -108,6 +108,14 @@ fun ReplyItem(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     if (profileUrl.isNullOrEmpty()) {
+                        Image(
+                            painter = painterResource(id = R.drawable.profile),
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
                         AsyncImage(
                             model = profileUrl,
                             contentDescription = "Profile picture",
@@ -117,14 +125,6 @@ fun ReplyItem(
                             placeholder = painterResource(id = R.drawable.profile),
                             error = painterResource(id = R.drawable.profile),
                             contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.profile),
-                            contentDescription = "Profile picture",
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
                         )
                     }
                     Text(

@@ -381,7 +381,7 @@ fun UserPostPage(
 
                 var replyProfileUrl by remember { mutableStateOf("") }
 
-                userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(reply.authorId)) { result, _ ->
+                userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(id = reply.authorId)) { result, _ ->
                     if (result != null) {
                         replyProfileUrl = result
                     }
