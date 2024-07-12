@@ -73,6 +73,29 @@ class UserDataRepository {
             }
     }
 
+
+    fun updateUsername(userId : String, editedUserName : String, onComplete: (Boolean, String?) -> Unit){
+        userDataCollection.whereEqualTo("id", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                if (!result.isEmpty) {
+                    val document = result.documents[0].reference
+                    document.update("name", editedUserName)
+                        .addOnSuccessListener {
+                            onComplete(true, null)
+                        }
+                        .addOnFailureListener { exception ->
+                            onComplete(false, exception.message)
+                        }
+                } else {
+                    onComplete(false, "User not found")
+                }
+            }
+            .addOnFailureListener { exception ->
+                onComplete(false, exception.message)
+            }
+    }
+
     fun updateProfileUrl(userId: String, newUrl: String, onComplete: (Boolean, String?) -> Unit) {
         userDataCollection.whereEqualTo("id", userId)
             .get()

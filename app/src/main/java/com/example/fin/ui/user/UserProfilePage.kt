@@ -59,7 +59,7 @@ fun UserProfilePage(
             .verticalScroll(rememberScrollState())
     ) {
 
-        UserProfileUI(user)
+        UserProfileUI(user, currentUser,  userDataRepository)
 
         if (currentUser != null && currentUser.id == user.id) {
             val imagePickerLauncher =
