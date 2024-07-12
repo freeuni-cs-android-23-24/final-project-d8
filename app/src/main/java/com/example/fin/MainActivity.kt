@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -125,7 +126,6 @@ fun ApplicationScreen(
     userPostRepository: UserPostRepository,
     signInLauncher: ActivityResultLauncher<Intent>
 ) {
-    //val postViewModel: PostViewModel = viewModel()
     Column(
         modifier = Modifier
             .padding(10.dp)
@@ -135,7 +135,9 @@ fun ApplicationScreen(
         var userPosts by remember { mutableStateOf<List<UserPost>>(emptyList()) }
         val currentUser = userRepository.currentUser.collectAsState().value
         var postContent by remember { mutableStateOf("") }
+        var searchText by remember { mutableStateOf("") }
         var showDialog by remember { mutableStateOf(false) }
+        var searched by remember { mutableStateOf(false) }
         var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
         var fileName by remember { mutableStateOf("") }
         val imagePickerLauncher =
@@ -170,7 +172,34 @@ fun ApplicationScreen(
                     Text(text = "Sign Out", color = Color.White)
                 }
             }
-//            CreatePostUI(postViewModel = postViewModel)
+            Row(modifier = Modifier.padding(top = 8.dp)) {
+                TextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    label = { Text("Search") },
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = {
+                        if (searchText.isEmpty()) {
+                            userPostRepository.getAllPosts { result, _ ->
+                                if (result != null) {
+                                    userPosts = result
+                                }
+                            }
+                        } else {
+                            userPostRepository.searchPosts(searchText) { result, _ ->
+                                if (result != null) {
+                                    userPosts = result
+                                    searched = true
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    Icon(imageVector = Icons.Default.Search , contentDescription = "Post")
+                }
+            }
             Row(modifier = Modifier.padding(top = 8.dp)) {
                 TextField(
                     value = postContent,
@@ -231,10 +260,11 @@ fun ApplicationScreen(
 
         }
 
-
-        userPostRepository.getAllPosts { result, _ ->
-            if (result != null) {
-                userPosts = result
+        if(!searched) {
+            userPostRepository.getAllPosts { result, _ ->
+                if (result != null) {
+                    userPosts = result
+                }
             }
         }
         for (post in userPosts) {
