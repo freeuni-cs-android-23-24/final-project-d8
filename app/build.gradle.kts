@@ -56,6 +56,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
     implementation("com.google.firebase:firebase-database")
     implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation("com.google.firebase:firebase-storage:21.0.0")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")

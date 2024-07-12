@@ -201,7 +201,7 @@ fun ApplicationScreen(
                         Button(
                             onClick = {
                                 postContent = postContent.removeSuffix(fileName)
-                                userPostRepository.savePost(postContent, selectedImageUri.toString()) { _, _ -> }
+                                userPostRepository.savePost(postContent, selectedImageUri) { _, _ -> }
                                 postContent = ""
                                 showDialog = false
                             }
