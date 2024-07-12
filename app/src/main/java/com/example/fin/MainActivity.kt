@@ -149,11 +149,12 @@ fun ApplicationScreen(
         var postContent by remember { mutableStateOf("") }
         var showDialog by remember { mutableStateOf(false) }
         var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+        var fileName by remember { mutableStateOf("") }
         val imagePickerLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
                 selectedImageUri = uri
                 selectedImageUri?.let {
-                    val fileName = "(Attached Image :" + it.lastPathSegment?.substringAfterLast("/") + ")"
+                    fileName = "(Attached Image :" + it.lastPathSegment?.substringAfterLast("/") + ")"
                     postContent += "\n"
                     postContent += fileName
                 }
@@ -199,6 +200,7 @@ fun ApplicationScreen(
                     confirmButton = {
                         Button(
                             onClick = {
+                                postContent = postContent.removeSuffix(fileName)
                                 userPostRepository.savePost(postContent, selectedImageUri.toString()) { _, _ -> }
                                 postContent = ""
                                 showDialog = false
