@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fin.cloud.uploadImageToStorage
 import com.example.fin.model.ApplicationUser
 import com.example.fin.model.Reply
 import com.example.fin.model.UserPost
@@ -80,6 +81,7 @@ class MainActivity : ComponentActivity() {
                                 userRepository = userRepository,
                                 userPostRepository = userPostRepository,
                                 signInLauncher = signInLauncher,
+                                userDataRepository = userDataRepository
                             )
                         }
 
@@ -95,7 +97,8 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 userPostRepository = userPostRepository,
                                 userRepository = userRepository,
-                                repliesRepository = repliesRepository
+                                repliesRepository = repliesRepository,
+                                userDataRepository = userDataRepository
                             )
                         }
 
@@ -124,6 +127,7 @@ fun ApplicationScreen(
     navController: NavHostController,
     userRepository: UserRepository,
     userPostRepository: UserPostRepository,
+    userDataRepository: UserDataRepository,
     signInLauncher: ActivityResultLauncher<Intent>
 ) {
     Column(
@@ -268,13 +272,20 @@ fun ApplicationScreen(
             }
         }
         for (post in userPosts) {
+            var profileUrl by remember { mutableStateOf("") }
             var deleteEnabled = false;
             if (currentUser != null) {
                 deleteEnabled = currentUser.id == post.authorId || currentUser.moderator
             }
+            userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(id = post.authorId)) { result, _ ->
+                if (result != null) {
+                    profileUrl = result
+                }
+            }
             UserPostUI(
-                post,
-                deleteEnabled,
+                userPost = post,
+                profileUrl = profileUrl,
+                deleteEnabled = deleteEnabled,
                 onClick = {
                     navController.navigate("UserPostPage/${post.userPostId}")
                 },
@@ -288,6 +299,7 @@ fun ApplicationScreen(
                 }
             )
 
+
         }
 
     }
@@ -300,6 +312,7 @@ fun UserPostPage(
     navController: NavHostController,
     userPostRepository: UserPostRepository,
     userRepository: UserRepository,
+    userDataRepository: UserDataRepository,
     repliesRepository: RepliesRepository
 ) {
     var userPost by remember { mutableStateOf(UserPost()) }
@@ -327,10 +340,17 @@ fun UserPostPage(
             .verticalScroll(rememberScrollState())
     ) {
         var postDeleteEnabled = false;
+        var profileUrl by remember { mutableStateOf<String>("") }
         if (currentUser != null) {
             postDeleteEnabled = currentUser.id == userPost.authorId || currentUser.moderator
         }
+        userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(id = userPost.authorId)) { result, _ ->
+            if (result != null) {
+                profileUrl = result
+            }
+        }
         UserPostUI(userPost,
+            profileUrl = profileUrl,
             postDeleteEnabled,
             onClick = {
                 navController.navigate("UserProfilePage/${userPost.authorId}")
@@ -340,6 +360,7 @@ fun UserPostPage(
                 navController.navigate("ApplicationScreen")
             }
         )
+
         if (currentUser != null) {
             ReplyInput { reply ->
                 repliesRepository.saveReply(reply, userPostId) { _, _ -> }
@@ -357,7 +378,16 @@ fun UserPostPage(
                 replyDeleteEnabled = currentUser.id == reply.authorId || currentUser.moderator
             }
             if (reply.enabled) {
+
+                var replyProfileUrl by remember { mutableStateOf("") }
+
+                userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(reply.authorId)) { result, _ ->
+                    if (result != null) {
+                        replyProfileUrl = result
+                    }
+                }
                 ReplyItem(reply,
+                    profileUrl = replyProfileUrl,
                     deleteEnabled = replyDeleteEnabled,
                     onClick = {
                         navController.navigate("UserProfilePage/${reply.authorId}")
@@ -371,6 +401,7 @@ fun UserPostPage(
                         }
                     }
                 )
+
             }
         }
     }
@@ -409,6 +440,29 @@ fun UserProfilePage(
 
         UserProfileUI(user)
 
+        if (currentUser != null && currentUser.id == user.id) {
+            val imagePickerLauncher =
+                rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+                    uri?.let {
+                        uploadImageToStorage(uri) { result, _ ->
+                            if (result != null) {
+                                userDataRepository.updateProfileUrl(currentUser.id, result) { _, _ -> }
+                            }
+                        }
+
+                    }
+                }
+            Button(
+                modifier = Modifier.padding(10.dp),
+                onClick = {
+                    imagePickerLauncher.launch("image/*")
+                },
+            ) {
+                Text(text = "Change Profile Photo", color = Color.White)
+            }
+
+        }
+
         if (posts.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(10.dp),
@@ -421,8 +475,15 @@ fun UserProfilePage(
             if (currentUser != null) {
                 deleteEnabled = currentUser.id == post.authorId || currentUser.moderator
             }
+            var profileUrl by remember { mutableStateOf("") }
+            userDataRepository.getUserProfileUrl(searchUser = ApplicationUser(id = post.authorId)) { result, _ ->
+                if (result != null) {
+                    profileUrl = result
+                }
+            }
             UserPostUI(post,
-                deleteEnabled,
+                profileUrl = profileUrl,
+                deleteEnabled = deleteEnabled,
                 onClick = {
                     navController.navigate("UserPostPage/${post.userPostId}")
                 },
@@ -435,10 +496,11 @@ fun UserProfilePage(
                     }
                 }
             )
-
         }
+
     }
 }
+
 
 private fun createSignInIntent(): Intent {
     val providers = listOf(

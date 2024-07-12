@@ -17,12 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fin.R
 import com.example.fin.model.Reply
 import com.example.fin.utils.DateUtils
@@ -63,7 +65,13 @@ fun ReplyInput(onReply: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReplyItem(reply: Reply, deleteEnabled: Boolean, onClick: () -> Unit, onDeleteClick: () -> Unit) {
+fun ReplyItem(
+    reply: Reply,
+    profileUrl: String?,
+    deleteEnabled: Boolean,
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,13 +107,26 @@ fun ReplyItem(reply: Reply, deleteEnabled: Boolean, onClick: () -> Unit, onDelet
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.profile),
-                        contentDescription = "Profile picture",
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                    )
+                    if (profileUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = profileUrl,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape),
+                            placeholder = painterResource(id = R.drawable.profile),
+                            error = painterResource(id = R.drawable.profile),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.profile),
+                            contentDescription = "Profile picture",
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                        )
+                    }
                     Text(
                         modifier = Modifier.padding(start = 10.dp),
                         text = reply.authorName,
