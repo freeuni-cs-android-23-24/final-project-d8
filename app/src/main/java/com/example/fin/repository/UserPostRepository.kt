@@ -40,6 +40,10 @@ class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
 
     }
 
+    fun searchPosts(searchTerm: String, onComplete: (List<UserPost>?, String?) -> Unit) {
+        firestoreRepository.searchPosts(searchTerm, onComplete)
+    }
+
     fun getAllPosts(onComplete: (List<UserPost>?, String?) -> Unit) {
         firestoreRepository.getAllPosts(onComplete)
     }

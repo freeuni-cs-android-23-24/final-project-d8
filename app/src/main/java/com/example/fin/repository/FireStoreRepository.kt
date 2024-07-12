@@ -35,6 +35,27 @@ class FirestoreRepository {
             }
     }
 
+    fun searchPosts(searchTerm: String, onComplete: (List<UserPost>?, String?) -> Unit) {
+        postsCollection
+            .whereEqualTo("enabled", true)
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { result ->
+                val posts = result.mapNotNull { document ->
+                    val post = document.toObject(UserPost::class.java)
+                    post.copy(userPostId = document.id)
+                    if (post.postBodyText.contains(searchTerm, ignoreCase = true)) {
+                        post
+                    } else {
+                        null
+                    }
+                }
+                onComplete(posts, null)
+            }
+            .addOnFailureListener { exception ->
+                onComplete(null, exception.message)
+            }
+    }
     fun getPostById(userPostId: String, onComplete: (UserPost?, String?) -> Unit) {
         postsCollection.document(userPostId)
             .get()
