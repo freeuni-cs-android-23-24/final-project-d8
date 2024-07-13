@@ -1,35 +1,39 @@
 package com.example.fin.repository
 
+import com.example.fin.model.ApplicationUser
 import com.example.fin.model.Reply
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
 class RepliesRepository {
     private val firestore = FirebaseFirestore.getInstance()
+    private val userDataRepository = UserDataRepository()
     private val repliesCollection = firestore.collection("replies")
 
-    fun saveReply(text: String, postId: String, onComplete: (Boolean, String?) -> Unit) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            val reply = Reply(
-                authorId = currentUser.uid,
-                authorName = currentUser.displayName ?: "N/A",
-                enabled = true,
-                postId = postId,
-                text = text
-            )
+    fun saveReply(text: String, postId: String, userId: String, onComplete: (Boolean, String?) -> Unit) {
 
-            repliesCollection.add(reply)
-                .addOnSuccessListener {
-                    onComplete(true, null)
-                }
-                .addOnFailureListener { exception ->
-                    onComplete(false, exception.message)
-                }
-        } else {
-            onComplete(false, "User not authenticated")
+        userDataRepository.getUserById(userId = userId) { currentUser, _ ->
+            if (currentUser != null) {
+                val reply = Reply(
+                    authorId = currentUser.id,
+                    authorName = currentUser.name,
+                    enabled = true,
+                    postId = postId,
+                    text = text
+                )
+
+                repliesCollection.add(reply)
+                    .addOnSuccessListener {
+                        onComplete(true, null)
+                    }
+                    .addOnFailureListener { exception ->
+                        onComplete(false, exception.message)
+                    }
+            } else {
+                onComplete(false, "User not authenticated")
+            }
         }
+
     }
 
     fun getRepliesByPostId(postId: String, onComplete: (List<Reply>?, String?) -> Unit) {

@@ -118,8 +118,6 @@ fun SearchAndPostSection(
     if (showDialog) {
         if (currentUser != null) {
             ConfirmPostDialog(
-                postContent = postContent,
-                fileName = fileName,
                 onConfirm = {
                     setPostContent(postContent.removeSuffix(fileName))
                     userPostRepository.savePost(postContent, selectedImageUri) { _, _ -> }

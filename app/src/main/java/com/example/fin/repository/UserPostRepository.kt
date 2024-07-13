@@ -6,37 +6,37 @@ import com.example.fin.model.UserPost
 import com.google.firebase.auth.FirebaseAuth
 
 class UserPostRepository(private val firestoreRepository: FirestoreRepository) {
+    private var userDataRepository = UserDataRepository()
 
     fun savePost(bodyText: String, imageUri: Uri?, onComplete: (Boolean, String?) -> Unit) {
         val currentUser = FirebaseAuth.getInstance().currentUser
-        if (imageUri != null) {
-            uploadImageToStorage(imageUri) { result, _ ->
-                if (currentUser != null) {
+        if (currentUser != null) {
+            userDataRepository.getUserById(currentUser.uid) { currentUserData, _ ->
+                if (imageUri != null) {
+                    uploadImageToStorage(imageUri) { result, _ ->
+                        val post = UserPost(
+                            authorId = currentUserData!!.id,
+                            authorName = currentUserData.name,
+                            imageUrl = result,
+                            postBodyText = bodyText
+                        )
+                        firestoreRepository.savePost(post, onComplete)
+                    }
+
+                } else {
                     val post = UserPost(
-                        authorId = currentUser.uid,
-                        authorName = currentUser.displayName ?: "N/A",
-                        imageUrl = result,
+                        authorId = currentUserData!!.id,
+                        authorName = currentUserData.name,
+                        imageUrl = "",
                         postBodyText = bodyText
                     )
                     firestoreRepository.savePost(post, onComplete)
-                } else {
-                    onComplete(false, "User not authenticated")
+
                 }
             }
-
+        } else {
+            onComplete(false, "User not authenticated")
         }
-        else {
-            if (currentUser != null) {
-                val post = UserPost(
-                    authorId = currentUser.uid,
-                    authorName = currentUser.displayName ?: "N/A",
-                    imageUrl = "",
-                    postBodyText = bodyText
-                )
-                firestoreRepository.savePost(post, onComplete)
-            }
-        }
-
 
     }
 
